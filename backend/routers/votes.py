@@ -1,19 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, Request
+from fastapi import APIRouter, Depends, HTTPException, Response, Request, BackgroundTasks
 from sqlalchemy.orm import Session
 from database import get_db
 from models import Poll, PollOption, Vote
 from schemas import VoteCreate, VoteResponse
 from utils.session import get_or_create_session
+from websocket.connection_manager import manager
 
 router = APIRouter(prefix="/api/polls", tags=["votes"])
 
 
 @router.post("/{poll_id}/vote", response_model=VoteResponse, status_code=201)
-def submit_vote(
+async def submit_vote(
     poll_id: int,
     vote_data: VoteCreate,
     request: Request,
     response: Response,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     """Submit a vote for a poll option"""
@@ -61,6 +63,18 @@ def submit_vote(
     
     db.commit()
     db.refresh(new_vote)
+    
+    # Calculate total votes for the poll
+    total_votes = sum(opt.vote_count for opt in poll.options)
+    
+    # Broadcast vote update to all connected clients
+    background_tasks.add_task(
+        manager.broadcast_vote_update,
+        poll_id=poll_id,
+        option_id=vote_data.option_id,
+        vote_count=option.vote_count,
+        total_votes=total_votes
+    )
     
     return VoteResponse(
         id=new_vote.id,

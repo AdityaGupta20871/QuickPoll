@@ -1,19 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, Request
+from fastapi import APIRouter, Depends, HTTPException, Response, Request, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from database import get_db
 from models import Poll, PollOption, Vote, Like
 from schemas import PollCreate, PollResponse, PollDetail, PollListResponse
 from utils.session import get_or_create_session
+from websocket.connection_manager import manager
 
 router = APIRouter(prefix="/api/polls", tags=["polls"])
 
 
 @router.post("/", response_model=PollDetail, status_code=201)
-def create_poll(
+async def create_poll(
     poll_data: PollCreate,
     request: Request,
     response: Response,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     """Create a new poll with options"""
@@ -41,7 +43,7 @@ def create_poll(
     db.refresh(new_poll)
     
     # Build response
-    return PollDetail(
+    poll_response = PollDetail(
         id=new_poll.id,
         title=new_poll.title,
         description=new_poll.description,
@@ -56,6 +58,14 @@ def create_poll(
         user_voted=False,
         user_liked=False
     )
+    
+    # Broadcast new poll to all connected clients
+    background_tasks.add_task(
+        manager.broadcast_poll_created,
+        poll_response.model_dump()
+    )
+    
+    return poll_response
 
 
 @router.get("/", response_model=PollListResponse)

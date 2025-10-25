@@ -1,18 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, Request
+from fastapi import APIRouter, Depends, HTTPException, Response, Request, BackgroundTasks
 from sqlalchemy.orm import Session
 from database import get_db
 from models import Poll, Like
 from schemas import LikeResponse, LikeDeleteResponse
 from utils.session import get_or_create_session
+from websocket.connection_manager import manager
 
 router = APIRouter(prefix="/api/polls", tags=["likes"])
 
 
 @router.post("/{poll_id}/like", response_model=LikeResponse, status_code=201)
-def like_poll(
+async def like_poll(
     poll_id: int,
     request: Request,
     response: Response,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     """Like a poll"""
@@ -45,6 +47,17 @@ def like_poll(
     db.commit()
     db.refresh(new_like)
     
+    # Calculate total likes for the poll
+    total_likes = len(poll.likes)
+    
+    # Broadcast like update to all connected clients
+    background_tasks.add_task(
+        manager.broadcast_like_update,
+        poll_id=poll_id,
+        total_likes=total_likes,
+        action="liked"
+    )
+    
     return LikeResponse(
         id=new_like.id,
         poll_id=new_like.poll_id,
@@ -54,10 +67,11 @@ def like_poll(
 
 
 @router.delete("/{poll_id}/like", response_model=LikeDeleteResponse)
-def unlike_poll(
+async def unlike_poll(
     poll_id: int,
     request: Request,
     response: Response,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     """Remove like from a poll"""
@@ -84,6 +98,17 @@ def unlike_poll(
     # Delete like
     db.delete(existing_like)
     db.commit()
+    
+    # Calculate total likes for the poll (after deletion)
+    total_likes = len(poll.likes)
+    
+    # Broadcast unlike update to all connected clients
+    background_tasks.add_task(
+        manager.broadcast_like_update,
+        poll_id=poll_id,
+        total_likes=total_likes,
+        action="unliked"
+    )
     
     return LikeDeleteResponse(
         message="Like removed successfully",
