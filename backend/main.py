@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import settings
-from routers import polls_router
+from routers import polls_router, votes_router, likes_router
 
 app = FastAPI(
     title="QuickPoll API",
@@ -20,6 +20,8 @@ app.add_middleware(
 
 # Include routers
 app.include_router(polls_router)
+app.include_router(votes_router)
+app.include_router(likes_router)
 
 @app.get("/")
 async def root():
