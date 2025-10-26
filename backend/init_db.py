@@ -4,7 +4,7 @@ Run this to create all tables in the database.
 """
 
 from database import Base, engine
-from models import Poll, PollOption, Vote, Like
+from models import User, Poll, PollOption, Vote, Like
 
 
 def init_database():
