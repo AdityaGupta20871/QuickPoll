@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -108,55 +109,57 @@ export default function PollPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-3xl mx-auto space-y-6">
-        {/* Back button */}
-        <Link href="/">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Polls
-          </Button>
-        </Link>
+    <ProtectedRoute>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto space-y-6">
+          {/* Back button */}
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Polls
+            </Button>
+          </Link>
 
-        {/* Poll Header */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <CardTitle className="text-3xl">{poll.title}</CardTitle>
-                {poll.description && (
-                  <CardDescription className="mt-2 text-base">
-                    {poll.description}
-                  </CardDescription>
-                )}
+          {/* Poll Header */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <CardTitle className="text-3xl">{poll.title}</CardTitle>
+                  {poll.description && (
+                    <CardDescription className="mt-2 text-base">
+                      {poll.description}
+                    </CardDescription>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-4 pt-4 text-sm">
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <Users className="h-4 w-4" />
-                <span>{poll.total_votes} votes</span>
+              <div className="flex items-center gap-4 pt-4 text-sm">
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Users className="h-4 w-4" />
+                  <span>{poll.total_votes} votes</span>
+                </div>
+                <LikeButton
+                  pollId={poll.id}
+                  initialLiked={poll.user_liked}
+                  initialCount={poll.total_likes}
+                  onLikeChange={loadPoll}
+                />
+                <Badge variant="outline" className="ml-auto">
+                  {new Date(poll.created_at).toLocaleDateString()}
+                </Badge>
               </div>
-              <LikeButton
-                pollId={poll.id}
-                initialLiked={poll.user_liked}
-                initialCount={poll.total_likes}
-                onLikeChange={loadPoll}
-              />
-              <Badge variant="outline" className="ml-auto">
-                {new Date(poll.created_at).toLocaleDateString()}
-              </Badge>
-            </div>
-          </CardHeader>
-        </Card>
+            </CardHeader>
+          </Card>
 
-        {/* Voting Interface */}
-        <VotingInterface poll={poll} onVoteSuccess={handleVoteSuccess} />
+          {/* Voting Interface */}
+          <VotingInterface poll={poll} onVoteSuccess={handleVoteSuccess} />
 
-        <Separator />
+          <Separator />
 
-        {/* Poll Results */}
-        <PollResults poll={poll} />
+          {/* Poll Results */}
+          <PollResults poll={poll} />
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }

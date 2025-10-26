@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Response, Request, Backgr
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from database import get_db
-from models import Poll, PollOption, Vote, Like
+from models import Poll, PollOption, Vote, Like, User
 from schemas import PollCreate, PollResponse, PollDetail, PollListResponse
-from utils.session import get_or_create_session
+from utils.auth import get_current_active_user
 from websocket.connection_manager import manager
 
 router = APIRouter(prefix="/api/polls", tags=["polls"])
@@ -13,20 +13,17 @@ router = APIRouter(prefix="/api/polls", tags=["polls"])
 @router.post("/", response_model=PollDetail, status_code=201)
 async def create_poll(
     poll_data: PollCreate,
-    request: Request,
-    response: Response,
     background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    """Create a new poll with options"""
-    # Get or create session
-    session_id = get_or_create_session(request, response)
-    
-    # Create poll
+    """Create a new poll with options (requires authentication)"""
+    # Create poll linked to authenticated user
     new_poll = Poll(
         title=poll_data.title,
         description=poll_data.description,
-        created_by=session_id
+        user_id=current_user.id,
+        created_by=current_user.email  # For display
     )
     db.add(new_poll)
     db.flush()  # Get poll ID without committing
@@ -115,29 +112,25 @@ def list_polls(
 @router.get("/{poll_id}", response_model=PollDetail)
 def get_poll(
     poll_id: int,
-    request: Request,
-    response: Response,
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    """Get detailed poll information including options and user's vote/like status"""
+    """Get detailed poll information including options and user's vote/like status (requires authentication)"""
     # Get poll
     poll = db.query(Poll).filter(Poll.id == poll_id).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
     
-    # Get session
-    session_id = get_or_create_session(request, response)
-    
     # Check if user voted
     user_vote = db.query(Vote).filter(
         Vote.poll_id == poll_id,
-        Vote.session_id == session_id
+        Vote.user_id == current_user.id
     ).first()
     
     # Check if user liked
     user_like = db.query(Like).filter(
         Like.poll_id == poll_id,
-        Like.session_id == session_id
+        Like.user_id == current_user.id
     ).first()
     
     # Calculate totals

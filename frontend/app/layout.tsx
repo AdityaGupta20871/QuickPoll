@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AuthProvider } from "@/components/AuthProvider";
 import { WebSocketProvider } from "@/components/WebSocketProvider";
 import Noise from "@/components/Noise";
 import "./globals.css";
@@ -37,9 +38,11 @@ export default function RootLayout({
           patternRefreshInterval={3}
           patternAlpha={8}
         />
-        <WebSocketProvider>
-          {children}
-        </WebSocketProvider>
+        <AuthProvider>
+          <WebSocketProvider>
+            {children}
+          </WebSocketProvider>
+        </AuthProvider>
       </body>
     </html>
   );

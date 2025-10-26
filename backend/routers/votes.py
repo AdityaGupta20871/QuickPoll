@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Request, BackgroundTasks
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Poll, PollOption, Vote
+from models import Poll, PollOption, Vote, User
 from schemas import VoteCreate, VoteResponse
-from utils.session import get_or_create_session
+from utils.auth import get_current_active_user
 from websocket.connection_manager import manager
 
 router = APIRouter(prefix="/api/polls", tags=["votes"])
@@ -13,15 +13,11 @@ router = APIRouter(prefix="/api/polls", tags=["votes"])
 async def submit_vote(
     poll_id: int,
     vote_data: VoteCreate,
-    request: Request,
-    response: Response,
     background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    """Submit a vote for a poll option"""
-    # Get session ID
-    session_id = get_or_create_session(request, response)
-    
+    """Submit a vote for a poll option (requires authentication)"""
     # Check if poll exists
     poll = db.query(Poll).filter(Poll.id == poll_id).first()
     if not poll:
@@ -41,7 +37,7 @@ async def submit_vote(
     # Check if user already voted
     existing_vote = db.query(Vote).filter(
         Vote.poll_id == poll_id,
-        Vote.session_id == session_id
+        Vote.user_id == current_user.id
     ).first()
     
     if existing_vote:
@@ -50,11 +46,11 @@ async def submit_vote(
             detail="You have already voted on this poll"
         )
     
-    # Create vote
+    # Create vote linked to authenticated user
     new_vote = Vote(
         poll_id=poll_id,
         option_id=vote_data.option_id,
-        session_id=session_id
+        user_id=current_user.id
     )
     db.add(new_vote)
     
@@ -88,13 +84,10 @@ async def submit_vote(
 @router.get("/{poll_id}/vote")
 def get_user_vote(
     poll_id: int,
-    request: Request,
-    response: Response,
+    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    """Check if user has voted and get their vote"""
-    session_id = get_or_create_session(request, response)
-    
+    """Check if user has voted and get their vote (requires authentication)"""
     # Check if poll exists
     poll = db.query(Poll).filter(Poll.id == poll_id).first()
     if not poll:
@@ -103,7 +96,7 @@ def get_user_vote(
     # Get user's vote
     vote = db.query(Vote).filter(
         Vote.poll_id == poll_id,
-        Vote.session_id == session_id
+        Vote.user_id == current_user.id
     ).first()
     
     if not vote:

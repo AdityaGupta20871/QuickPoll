@@ -1,18 +1,27 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { PollList } from "@/components/polls/PollList";
+import { UserMenu } from "@/components/UserMenu";
+import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { usePolls } from "@/hooks/usePolls";
 import { useWebSocketContext } from "@/components/WebSocketProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { PlusCircle, RefreshCw, Wifi, WifiOff } from "lucide-react";
+import { PlusCircle, RefreshCw, Wifi, WifiOff, LogIn } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
   const { polls, isLoading, error, refresh } = usePolls();
   const { isConnected } = useWebSocketContext();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Listen for WebSocket events
   useEffect(() => {
@@ -68,7 +77,7 @@ export default function Home() {
             Create and vote on polls in real-time
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="icon"
@@ -83,11 +92,44 @@ export default function Home() {
               Create Poll
             </Button>
           </Link>
+          <UserMenu />
         </div>
       </div>
 
-      {/* Poll List */}
-      <PollList polls={polls} isLoading={isLoading} error={error} />
+      {/* Poll List or Login Prompt */}
+      {!mounted || authLoading ? (
+        <div className="text-center py-16">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mx-auto"></div>
+            <div className="h-32 bg-gray-200 rounded mx-auto max-w-2xl"></div>
+          </div>
+        </div>
+      ) : !isAuthenticated ? (
+        <div className="text-center py-16">
+          <div className="max-w-md mx-auto space-y-6">
+            <LogIn className="h-16 w-16 mx-auto text-muted-foreground" />
+            <h2 className="text-2xl font-bold">Sign in to Continue</h2>
+            <p className="text-muted-foreground">
+              You need to be signed in to view, create, and vote on polls.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Link href="/login">
+                <Button size="lg">
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button size="lg" variant="outline">
+                  Create Account
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <PollList polls={polls} isLoading={isLoading} error={error} />
+      )}
     </div>
     </ErrorBoundary>
   );
