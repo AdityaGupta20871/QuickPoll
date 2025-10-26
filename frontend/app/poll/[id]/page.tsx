@@ -11,6 +11,7 @@ import { fetchPoll } from "@/lib/api";
 import { PollDetail } from "@/types/poll";
 import { VotingInterface } from "@/components/polls/VotingInterface";
 import { PollResults } from "@/components/polls/PollResults";
+import { LikeButton } from "@/components/polls/LikeButton";
 import Link from "next/link";
 
 export default function PollPage() {
@@ -19,6 +20,33 @@ export default function PollPage() {
   const [poll, setPoll] = useState<PollDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Listen for WebSocket real-time updates
+  useEffect(() => {
+    const handleVoteUpdate = (event: any) => {
+      const data = event.detail;
+      if (poll && data.poll_id === poll.id) {
+        console.log("Vote update for this poll, reloading...");
+        loadPoll();
+      }
+    };
+
+    const handleLikeUpdate = (event: any) => {
+      const data = event.detail;
+      if (poll && data.poll_id === poll.id) {
+        console.log("Like update for this poll, reloading...");
+        loadPoll();
+      }
+    };
+
+    window.addEventListener("vote_update", handleVoteUpdate);
+    window.addEventListener("like_update", handleLikeUpdate);
+
+    return () => {
+      window.removeEventListener("vote_update", handleVoteUpdate);
+      window.removeEventListener("like_update", handleLikeUpdate);
+    };
+  }, [poll]);
 
   const loadPoll = async () => {
     if (!params.id) return;
@@ -103,16 +131,18 @@ export default function PollPage() {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-4 pt-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
+            <div className="flex items-center gap-4 pt-4 text-sm">
+              <div className="flex items-center gap-1 text-muted-foreground">
                 <Users className="h-4 w-4" />
                 <span>{poll.total_votes} votes</span>
               </div>
-              <div className="flex items-center gap-1">
-                <Heart className="h-4 w-4" />
-                <span>{poll.total_likes} likes</span>
-              </div>
-              <Badge variant="outline">
+              <LikeButton
+                pollId={poll.id}
+                initialLiked={poll.user_liked}
+                initialCount={poll.total_likes}
+                onLikeChange={loadPoll}
+              />
+              <Badge variant="outline" className="ml-auto">
                 {new Date(poll.created_at).toLocaleDateString()}
               </Badge>
             </div>
