@@ -1,6 +1,5 @@
 import axios from "axios";
 import { Poll, PollDetail, PollCreate, VoteCreate, VoteResponse, LikeResponse } from "@/types/poll";
-import { AuthToken, LoginCredentials, RegisterData, GoogleAuthRequest, User } from "@/types/auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -12,30 +11,6 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
-
-// Add token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Handle 401 responses
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("user");
-      // Optionally redirect to login
-      // window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
 
 // Polls
 export const fetchPolls = async (page: number = 1, pageSize: number = 10) => {
@@ -91,29 +66,4 @@ export const unlikePoll = async (pollId: number) => {
 export const getUserLikeStatus = async (pollId: number) => {
   const response = await api.get(`/api/polls/${pollId}/like`);
   return response.data;
-};
-
-// Authentication
-export const register = async (data: RegisterData): Promise<AuthToken> => {
-  const response = await api.post<AuthToken>("/api/auth/register", data);
-  return response.data;
-};
-
-export const login = async (credentials: LoginCredentials): Promise<AuthToken> => {
-  const response = await api.post<AuthToken>("/api/auth/login", credentials);
-  return response.data;
-};
-
-export const googleAuth = async (credential: string): Promise<AuthToken> => {
-  const response = await api.post<AuthToken>("/api/auth/google", { credential });
-  return response.data;
-};
-
-export const getCurrentUser = async (): Promise<User> => {
-  const response = await api.get<User>("/api/auth/me");
-  return response.data;
-};
-
-export const logout = async (): Promise<void> => {
-  await api.post("/api/auth/logout");
 };

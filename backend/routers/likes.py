@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, Request, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Response, Request, BackgroundTasks, Cookie
 from sqlalchemy.orm import Session
+from typing import Optional
 from database import get_db
-from models import Poll, Like, User
+from models import Poll, Like
 from schemas import LikeResponse, LikeDeleteResponse
-from utils.auth import get_current_active_user
 from websocket.connection_manager import manager
+import uuid
 
 router = APIRouter(prefix="/api/polls", tags=["likes"])
 
@@ -13,19 +14,25 @@ router = APIRouter(prefix="/api/polls", tags=["likes"])
 async def like_poll(
     poll_id: int,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    response: Response,
+    db: Session = Depends(get_db),
+    session_id: Optional[str] = Cookie(default=None)
 ):
-    """Like a poll (requires authentication)"""
+    """Like a poll using session-based tracking"""
+    # Generate or use existing session ID
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        response.set_cookie(key="session_id", value=session_id, httponly=True, max_age=31536000)  # 1 year
+    
     # Check if poll exists
     poll = db.query(Poll).filter(Poll.id == poll_id).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
     
-    # Check if user already liked
+    # Check if session already liked
     existing_like = db.query(Like).filter(
         Like.poll_id == poll_id,
-        Like.user_id == current_user.id
+        Like.session_id == session_id
     ).first()
     
     if existing_like:
@@ -34,10 +41,10 @@ async def like_poll(
             detail="You have already liked this poll"
         )
     
-    # Create like linked to authenticated user
+    # Create like with session ID
     new_like = Like(
         poll_id=poll_id,
-        user_id=current_user.id
+        session_id=session_id
     )
     db.add(new_like)
     db.commit()
@@ -66,19 +73,25 @@ async def like_poll(
 async def unlike_poll(
     poll_id: int,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    session_id: Optional[str] = Cookie(default=None)
 ):
-    """Remove like from a poll (requires authentication)"""
+    """Remove like from a poll using session-based tracking"""
     # Check if poll exists
     poll = db.query(Poll).filter(Poll.id == poll_id).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
     
+    if not session_id:
+        raise HTTPException(
+            status_code=404,
+            detail="Like not found"
+        )
+    
     # Find existing like
     existing_like = db.query(Like).filter(
         Like.poll_id == poll_id,
-        Like.user_id == current_user.id
+        Like.session_id == session_id
     ).first()
     
     if not existing_like:
@@ -111,19 +124,22 @@ async def unlike_poll(
 @router.get("/{poll_id}/like")
 def get_user_like_status(
     poll_id: int,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    session_id: Optional[str] = Cookie(default=None)
 ):
-    """Check if user has liked the poll (requires authentication)"""
+    """Check if session has liked the poll"""
     # Check if poll exists
     poll = db.query(Poll).filter(Poll.id == poll_id).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
     
-    # Check if user liked
+    if not session_id:
+        return {"liked": False}
+    
+    # Check if session liked
     like = db.query(Like).filter(
         Like.poll_id == poll_id,
-        Like.user_id == current_user.id
+        Like.session_id == session_id
     ).first()
     
     if not like:

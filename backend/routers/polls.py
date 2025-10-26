@@ -2,9 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Response, Request, Backgr
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from database import get_db
-from models import Poll, PollOption, Vote, Like, User
+from models import Poll, PollOption, Vote, Like
 from schemas import PollCreate, PollResponse, PollDetail, PollListResponse
-from utils.auth import get_current_active_user
 from websocket.connection_manager import manager
 
 router = APIRouter(prefix="/api/polls", tags=["polls"])
@@ -14,16 +13,14 @@ router = APIRouter(prefix="/api/polls", tags=["polls"])
 async def create_poll(
     poll_data: PollCreate,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    """Create a new poll with options (requires authentication)"""
-    # Create poll linked to authenticated user
+    """Create a new poll with options"""
+    # Create poll
     new_poll = Poll(
         title=poll_data.title,
         description=poll_data.description,
-        user_id=current_user.id,
-        created_by=current_user.email  # For display
+        created_by="anonymous"
     )
     db.add(new_poll)
     db.flush()  # Get poll ID without committing
@@ -112,26 +109,13 @@ def list_polls(
 @router.get("/{poll_id}", response_model=PollDetail)
 def get_poll(
     poll_id: int,
-    current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    """Get detailed poll information including options and user's vote/like status (requires authentication)"""
+    """Get detailed poll information including options"""
     # Get poll
     poll = db.query(Poll).filter(Poll.id == poll_id).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
-    
-    # Check if user voted
-    user_vote = db.query(Vote).filter(
-        Vote.poll_id == poll_id,
-        Vote.user_id == current_user.id
-    ).first()
-    
-    # Check if user liked
-    user_like = db.query(Like).filter(
-        Like.poll_id == poll_id,
-        Like.user_id == current_user.id
-    ).first()
     
     # Calculate totals
     total_votes = sum(opt.vote_count for opt in poll.options)
@@ -154,6 +138,6 @@ def get_poll(
         ],
         total_votes=total_votes,
         total_likes=total_likes,
-        user_voted=user_vote is not None,
-        user_liked=user_like is not None
+        user_voted=False,
+        user_liked=False
     )

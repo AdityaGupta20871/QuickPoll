@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, Request, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Response, Request, BackgroundTasks, Cookie
 from sqlalchemy.orm import Session
+from typing import Optional
 from database import get_db
-from models import Poll, PollOption, Vote, User
+from models import Poll, PollOption, Vote
 from schemas import VoteCreate, VoteResponse
-from utils.auth import get_current_active_user
 from websocket.connection_manager import manager
+import uuid
 
 router = APIRouter(prefix="/api/polls", tags=["votes"])
 
@@ -14,10 +15,16 @@ async def submit_vote(
     poll_id: int,
     vote_data: VoteCreate,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    response: Response,
+    db: Session = Depends(get_db),
+    session_id: Optional[str] = Cookie(default=None)
 ):
-    """Submit a vote for a poll option (requires authentication)"""
+    """Submit a vote for a poll option using session-based tracking"""
+    # Generate or use existing session ID
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        response.set_cookie(key="session_id", value=session_id, httponly=True, max_age=31536000)  # 1 year
+    
     # Check if poll exists
     poll = db.query(Poll).filter(Poll.id == poll_id).first()
     if not poll:
@@ -34,10 +41,10 @@ async def submit_vote(
             detail="Poll option not found or does not belong to this poll"
         )
     
-    # Check if user already voted
+    # Check if session already voted
     existing_vote = db.query(Vote).filter(
         Vote.poll_id == poll_id,
-        Vote.user_id == current_user.id
+        Vote.session_id == session_id
     ).first()
     
     if existing_vote:
@@ -46,11 +53,11 @@ async def submit_vote(
             detail="You have already voted on this poll"
         )
     
-    # Create vote linked to authenticated user
+    # Create vote with session ID
     new_vote = Vote(
         poll_id=poll_id,
         option_id=vote_data.option_id,
-        user_id=current_user.id
+        session_id=session_id
     )
     db.add(new_vote)
     
@@ -84,19 +91,22 @@ async def submit_vote(
 @router.get("/{poll_id}/vote")
 def get_user_vote(
     poll_id: int,
-    current_user: User = Depends(get_current_active_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    session_id: Optional[str] = Cookie(default=None)
 ):
-    """Check if user has voted and get their vote (requires authentication)"""
+    """Check if session has voted and get their vote"""
     # Check if poll exists
     poll = db.query(Poll).filter(Poll.id == poll_id).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
     
-    # Get user's vote
+    if not session_id:
+        return {"voted": False, "option_id": None}
+    
+    # Get session's vote
     vote = db.query(Vote).filter(
         Vote.poll_id == poll_id,
-        Vote.user_id == current_user.id
+        Vote.session_id == session_id
     ).first()
     
     if not vote:

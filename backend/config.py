@@ -1,8 +1,17 @@
-from pydantic_settings import BaseSettings
-from typing import List
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator, model_validator
+from typing import List, Any
+import json
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env", 
+        env_file_encoding="utf-8",
+        # Disable automatic JSON parsing for complex types
+        env_parse_none_str=None
+    )
+    
     # Database
     DATABASE_URL: str = "sqlite:///./quickpoll.db"
     
@@ -11,24 +20,24 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
     API_RELOAD: bool = True
     
-    # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    # CORS - will be parsed from string to list
+    CORS_ORIGINS: Any = ["http://localhost:3000", "http://127.0.0.1:3000"]
     
     # Environment
     ENVIRONMENT: str = "development"
     
-    # Authentication
-    SECRET_KEY: str = "your-secret-key-change-in-production-please-change-this-to-random-string"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    
-    # Google OAuth
-    GOOGLE_CLIENT_ID: str = ""
-    GOOGLE_CLIENT_SECRET: str = ""
-    GOOGLE_REDIRECT_URI: str = "http://localhost:3000/auth/callback"
-    
-    class Config:
-        env_file = ".env"
+    @field_validator('CORS_ORIGINS', mode='before')
+    @classmethod
+    def parse_cors_origins(cls, v) -> List[str]:
+        if isinstance(v, list):
+            return v
+        if isinstance(v, str):
+            # Handle comma-separated string
+            if ',' in v:
+                return [origin.strip() for origin in v.split(',')]
+            # Single value
+            return [v]
+        return ["http://localhost:3000", "http://127.0.0.1:3000"]
 
 
 settings = Settings()

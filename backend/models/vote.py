@@ -10,17 +10,11 @@ class Vote(Base):
     id = Column(Integer, primary_key=True, index=True)
     poll_id = Column(Integer, ForeignKey("polls.id"), nullable=False)
     option_id = Column(Integer, ForeignKey("poll_options.id"), nullable=False)
-    
-    # User relationship - nullable for backward compatibility with session-based votes
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
-    
-    # Legacy session-based field (kept for backward compatibility)
-    session_id = Column(String(100), nullable=True, index=True)
+    session_id = Column(String(100), nullable=False, index=True)
     
     voted_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
-    user = relationship("User", back_populates="votes")
     poll = relationship("Poll", back_populates="votes")
     option = relationship("PollOption", back_populates="votes")
     
