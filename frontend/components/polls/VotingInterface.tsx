@@ -69,7 +69,7 @@ export function VotingInterface({ poll, onVoteSuccess }: VotingInterfaceProps) {
   }
 
   return (
-    <Card>
+    <Card className="animate-fade-in">
       <CardHeader>
         <CardTitle>Cast Your Vote</CardTitle>
       </CardHeader>
@@ -106,7 +106,7 @@ export function VotingInterface({ poll, onVoteSuccess }: VotingInterfaceProps) {
         <Button
           onClick={handleVote}
           disabled={!selectedOption || isLoading}
-          className="w-full"
+          className="w-full btn-press hover-lift"
         >
           {isLoading ? "Submitting..." : "Submit Vote"}
         </Button>

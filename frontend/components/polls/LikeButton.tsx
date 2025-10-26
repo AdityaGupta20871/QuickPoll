@@ -54,8 +54,8 @@ export function LikeButton({
       size="sm"
       onClick={handleClick}
       disabled={isLoading}
-      className={`gap-2 transition-all ${
-        isLiked ? "bg-red-500 hover:bg-red-600" : ""
+      className={`gap-2 transition-all btn-press hover-lift ${
+        isLiked ? "bg-red-500 hover:bg-red-600 animate-scale-pulse" : ""
       }`}
     >
       <Heart

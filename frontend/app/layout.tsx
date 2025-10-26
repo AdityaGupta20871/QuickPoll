@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { WebSocketProvider } from "@/components/WebSocketProvider";
+import Noise from "@/components/Noise";
 import "./globals.css";
+import "./animations.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +30,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Noise
+          patternSize={250}
+          patternScaleX={1}
+          patternScaleY={1}
+          patternRefreshInterval={3}
+          patternAlpha={8}
+        />
         <WebSocketProvider>
           {children}
         </WebSocketProvider>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { usePolls } from "@/hooks/usePolls";
 import { useWebSocketContext } from "@/components/WebSocketProvider";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PlusCircle, RefreshCw, Wifi, WifiOff } from "lucide-react";
 import Link from "next/link";
 
@@ -42,9 +43,10 @@ export default function Home() {
   }, [refresh]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <ErrorBoundary>
+    <div className="relative container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8 animate-fade-in">
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-4xl font-bold">QuickPoll</h1>
@@ -87,5 +89,6 @@ export default function Home() {
       {/* Poll List */}
       <PollList polls={polls} isLoading={isLoading} error={error} />
     </div>
+    </ErrorBoundary>
   );
 }

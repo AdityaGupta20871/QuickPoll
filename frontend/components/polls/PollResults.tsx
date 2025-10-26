@@ -12,7 +12,7 @@ export function PollResults({ poll }: PollResultsProps) {
   const totalVotes = poll.total_votes || 0;
 
   return (
-    <Card>
+    <Card className="animate-fade-in">
       <CardHeader>
         <CardTitle>Results</CardTitle>
       </CardHeader>
@@ -30,7 +30,7 @@ export function PollResults({ poll }: PollResultsProps) {
                   {option.vote_count} votes ({percentage}%)
                 </span>
               </div>
-              <Progress value={percentage} className="h-2" />
+              <Progress value={percentage} className="h-2 animate-progress" />
             </div>
           );
         })}

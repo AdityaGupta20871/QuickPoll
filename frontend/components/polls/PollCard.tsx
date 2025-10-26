@@ -13,7 +13,7 @@ interface PollCardProps {
 export function PollCard({ poll }: PollCardProps) {
   return (
     <Link href={`/poll/${poll.id}`}>
-      <Card className="cursor-pointer hover:shadow-lg transition-shadow duration-200">
+      <Card className="cursor-pointer card-hover animate-fade-in-scale">
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1">

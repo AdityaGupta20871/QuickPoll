@@ -2,8 +2,9 @@
 
 import { PollCard } from "./PollCard";
 import { PollCardSkeleton } from "./PollCardSkeleton";
+import { EmptyState } from "@/components/EmptyState";
 import { Poll } from "@/types/poll";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Vote } from "lucide-react";
 
 interface PollListProps {
   polls: Poll[];
@@ -34,12 +35,15 @@ export function PollList({ polls, isLoading, error }: PollListProps) {
 
   if (polls.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <h3 className="text-lg font-semibold mb-2">No polls yet</h3>
-        <p className="text-muted-foreground">
-          Be the first to create a poll!
-        </p>
-      </div>
+      <EmptyState
+        icon={Vote}
+        title="No polls yet"
+        description="Be the first to create a poll and start gathering opinions!"
+        action={{
+          label: "Create Your First Poll",
+          onClick: () => window.location.href = "/create"
+        }}
+      />
     );
   }
 

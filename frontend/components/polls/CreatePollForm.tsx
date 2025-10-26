@@ -60,7 +60,7 @@ export function CreatePollForm() {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <Card className="w-full max-w-2xl mx-auto animate-slide-in">
       <CardHeader>
         <CardTitle>Create a New Poll</CardTitle>
         <CardDescription>
@@ -140,7 +140,7 @@ export function CreatePollForm() {
           )}
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full btn-press hover-lift" disabled={isLoading}>
             {isLoading ? "Creating..." : "Create Poll"}
           </Button>
         </form>
