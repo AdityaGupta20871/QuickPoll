@@ -23,6 +23,7 @@ class PollCreate(BaseModel):
     title: str = Field(..., min_length=3, max_length=200, description="Poll title")
     description: Optional[str] = Field(None, max_length=1000, description="Poll description")
     options: List[str] = Field(..., min_items=2, max_items=10, description="Poll options")
+    duration_hours: Optional[int] = Field(None, ge=1, le=720, description="Poll duration in hours (1-720, max 30 days)")
     
     @field_validator('options')
     @classmethod
@@ -38,12 +39,20 @@ class PollCreate(BaseModel):
         return options
 
 
+class PollUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=3, max_length=200, description="Poll title")
+    description: Optional[str] = Field(None, max_length=1000, description="Poll description")
+    is_active: Optional[bool] = Field(None, description="Poll active status")
+
+
 class PollBase(BaseModel):
     id: int
     title: str
     description: Optional[str] = None
     created_by: str
     created_at: datetime
+    expires_at: Optional[datetime] = None
+    is_active: bool = True
     
     class Config:
         from_attributes = True
@@ -62,6 +71,8 @@ class PollDetail(PollBase):
     total_likes: int = 0
     user_voted: bool = False
     user_liked: bool = False
+    is_owner: bool = False
+    is_expired: bool = False
 
 
 class PollListResponse(BaseModel):
