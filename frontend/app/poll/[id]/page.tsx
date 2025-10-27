@@ -13,6 +13,7 @@ import { VotingInterface } from "@/components/polls/VotingInterface";
 import { PollResults } from "@/components/polls/PollResults";
 import { LikeButton } from "@/components/polls/LikeButton";
 import Link from "next/link";
+import PixelBlast from "@/components/PixelBlast";
 
 export default function PollPage() {
   const params = useParams();
@@ -81,12 +82,28 @@ export default function PollPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-32 bg-gray-200 rounded"></div>
-            <div className="h-64 bg-gray-200 rounded"></div>
+      <div className="relative min-h-screen w-full overflow-hidden bg-black">
+        <div className="absolute inset-0 z-0">
+          <PixelBlast
+            variant="circle"
+            pixelSize={3}
+            color="#8B5CF6"
+            patternScale={2}
+            patternDensity={1}
+            enableRipples={true}
+            rippleSpeed={0.3}
+            rippleThickness={0.1}
+            speed={0.5}
+            edgeFade={0.3}
+          />
+        </div>
+        <div className="relative z-10 container mx-auto px-4 py-8">
+          <div className="max-w-3xl mx-auto">
+            <div className="animate-pulse space-y-4">
+              <div className="h-8 bg-white/10 rounded w-1/4"></div>
+              <div className="h-32 bg-white/10 rounded"></div>
+              <div className="h-64 bg-white/10 rounded"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -95,28 +112,80 @@ export default function PollPage() {
 
   if (error || !poll) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl font-bold mb-4">Poll not found</h2>
-          <p className="text-muted-foreground mb-6">{error || "This poll doesn't exist."}</p>
-          <Link href="/">
-            <Button>Back to Home</Button>
-          </Link>
+      <div className="relative min-h-screen w-full overflow-hidden bg-black">
+        <div className="absolute inset-0 z-0">
+          <PixelBlast
+            variant="circle"
+            pixelSize={3}
+            color="#8B5CF6"
+            patternScale={2}
+            patternDensity={1}
+            enableRipples={true}
+            rippleSpeed={0.3}
+            rippleThickness={0.1}
+            speed={0.5}
+            edgeFade={0.3}
+          />
+        </div>
+        <div className="relative z-10 container mx-auto px-4 py-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-2xl font-bold mb-4 text-white">Poll not found</h2>
+            <p className="text-white/70 mb-6">{error || "This poll doesn't exist."}</p>
+            <Link href="/">
+              <Button className="bg-white text-black hover:bg-white/90">Back to Home</Button>
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-3xl mx-auto space-y-6">
-        {/* Back button */}
-        <Link href="/">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Polls
-          </Button>
-        </Link>
+    <div className="relative min-h-screen w-full overflow-hidden bg-black">
+      {/* PixelBlast Background */}
+      <div className="absolute inset-0 z-0">
+        <PixelBlast
+          variant="circle"
+          pixelSize={3}
+          color="#8B5CF6"
+          patternScale={2}
+          patternDensity={1}
+          enableRipples={true}
+          rippleSpeed={0.3}
+          rippleThickness={0.1}
+          speed={0.5}
+          edgeFade={0.3}
+        />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Navbar with Glassmorphism */}
+        <div className="flex justify-center px-4 py-6">
+          <nav className="flex items-center justify-between px-8 py-4 max-w-2xl w-full backdrop-blur-lg bg-white/10 rounded-full border border-white/20 shadow-lg">
+            <div className="flex items-center gap-2">
+              <div className="text-2xl font-bold text-white">QuickPoll</div>
+            </div>
+            <div className="flex items-center gap-6">
+              <Link href="/polls" className="text-white/80 hover:text-white transition-colors">
+                Polls
+              </Link>
+              <Link href="/create" className="text-white/80 hover:text-white transition-colors">
+                Create
+              </Link>
+            </div>
+          </nav>
+        </div>
+
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-3xl mx-auto space-y-6">
+            {/* Back button */}
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Home
+              </Button>
+            </Link>
 
         {/* Poll Header */}
         <Card>
@@ -149,13 +218,15 @@ export default function PollPage() {
           </CardHeader>
         </Card>
 
-        {/* Voting Interface */}
-        <VotingInterface poll={poll} onVoteSuccess={handleVoteSuccess} />
+            {/* Voting Interface */}
+            <VotingInterface poll={poll} onVoteSuccess={handleVoteSuccess} />
 
-        <Separator />
+            <Separator className="bg-white/20" />
 
-        {/* Poll Results */}
-        <PollResults poll={poll} />
+            {/* Poll Results */}
+            <PollResults poll={poll} />
+          </div>
+        </div>
       </div>
     </div>
   );

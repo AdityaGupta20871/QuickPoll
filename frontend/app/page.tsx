@@ -33,29 +33,31 @@ export default function Home() {
 
       {/* Content */}
       <div className="relative z-10 flex min-h-screen flex-col">
-        {/* Navbar */}
-        <nav className="flex items-center justify-between px-8 py-6">
-          <div className="flex items-center gap-2">
-            <div className="text-2xl font-bold text-white">QuickPoll</div>
-          </div>
-          <div className="flex items-center gap-6">
-            <Link href="/polls" className="text-white/80 hover:text-white transition-colors">
-              Polls
-            </Link>
-            <Link href="/create" className="text-white/80 hover:text-white transition-colors">
-              Create
-            </Link>
-          </div>
-        </nav>
+        {/* Navbar with Glassmorphism */}
+        <div className="flex justify-center px-4 py-6">
+          <nav className="flex items-center justify-between px-8 py-4 max-w-2xl w-full backdrop-blur-lg bg-white/10 rounded-full border border-white/20 shadow-lg">
+            <div className="flex items-center gap-2">
+              <div className="text-2xl font-bold text-white">QuickPoll</div>
+            </div>
+            <div className="flex items-center gap-6">
+              <Link href="/polls" className="text-white/80 hover:text-white transition-colors">
+                Polls
+              </Link>
+              <Link href="/create" className="text-white/80 hover:text-white transition-colors">
+                Create
+              </Link>
+            </div>
+          </nav>
+        </div>
 
         {/* Hero Section */}
         <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
           {/* Headline with Shuffle Animation */}
           {mounted && (
             <Shuffle
-              text="Create polls instantly."
+              text="QuickPoll"
               tag="h1"
-              className="text-6xl md:text-7xl lg:text-8xl font-bold text-white mb-6"
+              className="text-6xl md:text-7xl lg:text-8xl font-bold text-white mb-8"
               shuffleDirection="right"
               duration={0.4}
               stagger={0.04}
@@ -73,7 +75,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4">
             <Link href="/create">
               <Button size="lg" className="bg-white text-black hover:bg-white/90 px-8 py-6 text-lg font-semibold">
-                Get Started
+                Create Poll
               </Button>
             </Link>
             <Link href="/polls">
@@ -82,7 +84,7 @@ export default function Home() {
                 variant="outline" 
                 className="border-white/30 text-white hover:bg-white/10 px-8 py-6 text-lg font-semibold"
               >
-                View Polls
+                View Poll
               </Button>
             </Link>
           </div>
