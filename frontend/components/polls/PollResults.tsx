@@ -12,9 +12,9 @@ export function PollResults({ poll }: PollResultsProps) {
   const totalVotes = poll.total_votes || 0;
 
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in bg-white/5 border-white/10">
       <CardHeader>
-        <CardTitle>Results</CardTitle>
+        <CardTitle className="text-white">Results</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {poll.options.map((option) => {
@@ -25,8 +25,8 @@ export function PollResults({ poll }: PollResultsProps) {
           return (
             <div key={option.id} className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">{option.option_text}</span>
-                <span className="text-muted-foreground">
+                <span className="font-medium text-white">{option.option_text}</span>
+                <span className="text-white/70">
                   {option.vote_count} votes ({percentage}%)
                 </span>
               </div>
@@ -35,7 +35,7 @@ export function PollResults({ poll }: PollResultsProps) {
           );
         })}
 
-        <div className="pt-4 border-t text-center text-sm text-muted-foreground">
+        <div className="pt-4 border-t border-white/10 text-center text-sm text-white/70">
           Total votes: {totalVotes}
         </div>
       </CardContent>

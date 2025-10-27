@@ -188,20 +188,20 @@ export default function PollPage() {
             </Link>
 
         {/* Poll Header */}
-        <Card>
+        <Card className="bg-white/5 border-white/10">
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <CardTitle className="text-3xl">{poll.title}</CardTitle>
+                <CardTitle className="text-3xl text-white">{poll.title}</CardTitle>
                 {poll.description && (
-                  <CardDescription className="mt-2 text-base">
+                  <CardDescription className="mt-2 text-base text-white/70">
                     {poll.description}
                   </CardDescription>
                 )}
               </div>
             </div>
             <div className="flex items-center gap-4 pt-4 text-sm">
-              <div className="flex items-center gap-1 text-muted-foreground">
+              <div className="flex items-center gap-1 text-white/70">
                 <Users className="h-4 w-4" />
                 <span>{poll.total_votes} votes</span>
               </div>
@@ -211,7 +211,7 @@ export default function PollPage() {
                 initialCount={poll.total_likes}
                 onLikeChange={loadPoll}
               />
-              <Badge variant="outline" className="ml-auto">
+              <Badge variant="outline" className="ml-auto border-white/20 text-white/80">
                 {new Date(poll.created_at).toLocaleDateString()}
               </Badge>
             </div>

@@ -52,15 +52,15 @@ export function VotingInterface({ poll, onVoteSuccess }: VotingInterfaceProps) {
 
   if (hasVoted) {
     return (
-      <Card className="border-green-200 bg-green-50/50">
+      <Card className="border-green-500/30 bg-green-500/10 backdrop-blur-sm">
         <CardHeader>
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
-            <CardTitle className="text-lg">You've already voted!</CardTitle>
+            <CheckCircle2 className="h-5 w-5 text-green-400" />
+            <CardTitle className="text-lg text-white">You've already voted!</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-white/70">
             Thank you for participating in this poll. Check the results below.
           </p>
         </CardContent>
@@ -69,9 +69,9 @@ export function VotingInterface({ poll, onVoteSuccess }: VotingInterfaceProps) {
   }
 
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in bg-white/5 border-white/10">
       <CardHeader>
-        <CardTitle>Cast Your Vote</CardTitle>
+        <CardTitle className="text-white">Cast Your Vote</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <RadioGroup
@@ -81,7 +81,7 @@ export function VotingInterface({ poll, onVoteSuccess }: VotingInterfaceProps) {
           {poll.options.map((option) => (
             <div
               key={option.id}
-              className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-accent transition-colors"
+              className="flex items-center space-x-3 p-3 rounded-lg border border-white/10 hover:bg-white/10 hover:border-purple-500/50 transition-colors"
             >
               <RadioGroupItem
                 value={option.id.toString()}
@@ -89,7 +89,7 @@ export function VotingInterface({ poll, onVoteSuccess }: VotingInterfaceProps) {
               />
               <Label
                 htmlFor={`option-${option.id}`}
-                className="flex-1 cursor-pointer"
+                className="flex-1 cursor-pointer text-white"
               >
                 {option.option_text}
               </Label>
@@ -98,7 +98,7 @@ export function VotingInterface({ poll, onVoteSuccess }: VotingInterfaceProps) {
         </RadioGroup>
 
         {error && (
-          <div className="text-sm text-red-500 bg-red-50 p-3 rounded-md">
+          <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 p-3 rounded-md">
             {error}
           </div>
         )}
