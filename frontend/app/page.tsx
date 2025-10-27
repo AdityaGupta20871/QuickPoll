@@ -1,94 +1,93 @@
 "use client";
 
-import { useEffect } from "react";
-import { PollList } from "@/components/polls/PollList";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { usePolls } from "@/hooks/usePolls";
-import { useWebSocketContext } from "@/components/WebSocketProvider";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { PlusCircle, RefreshCw, Wifi, WifiOff } from "lucide-react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import PixelBlast from "@/components/PixelBlast";
+import Shuffle from "@/components/Shuffle";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const { polls, isLoading, error, refresh } = usePolls();
-  const { isConnected } = useWebSocketContext();
+  const [mounted, setMounted] = useState(false);
 
-  // Listen for WebSocket events
   useEffect(() => {
-    const handlePollCreated = () => {
-      console.log("New poll created, refreshing list...");
-      refresh();
-    };
-
-    const handleVoteUpdate = () => {
-      console.log("Vote update received, refreshing list...");
-      refresh();
-    };
-
-    const handleLikeUpdate = () => {
-      console.log("Like update received, refreshing list...");
-      refresh();
-    };
-
-    window.addEventListener("poll_created", handlePollCreated);
-    window.addEventListener("vote_update", handleVoteUpdate);
-    window.addEventListener("like_update", handleLikeUpdate);
-
-    return () => {
-      window.removeEventListener("poll_created", handlePollCreated);
-      window.removeEventListener("vote_update", handleVoteUpdate);
-      window.removeEventListener("like_update", handleLikeUpdate);
-    };
-  }, [refresh]);
+    setMounted(true);
+  }, []);
 
   return (
-    <ErrorBoundary>
-    <div className="relative container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8 animate-fade-in">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-4xl font-bold">QuickPoll</h1>
-            <Badge variant={isConnected ? "default" : "secondary"} className="gap-1">
-              {isConnected ? (
-                <>
-                  <Wifi className="h-3 w-3" />
-                  Live
-                </>
-              ) : (
-                <>
-                  <WifiOff className="h-3 w-3" />
-                  Offline
-                </>
-              )}
-            </Badge>
-          </div>
-          <p className="text-muted-foreground mt-2">
-            Create and vote on polls in real-time
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={refresh}
-            disabled={isLoading}
-          >
-            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-          </Button>
-          <Link href="/create">
-            <Button>
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Create Poll
-            </Button>
-          </Link>
-        </div>
+    <div className="relative min-h-screen w-full overflow-hidden bg-black">
+      {/* PixelBlast Background */}
+      <div className="absolute inset-0 z-0">
+        <PixelBlast
+          variant="circle"
+          pixelSize={3}
+          color="#8B5CF6"
+          patternScale={2}
+          patternDensity={1}
+          enableRipples={true}
+          rippleSpeed={0.3}
+          rippleThickness={0.1}
+          speed={0.5}
+          edgeFade={0.3}
+        />
       </div>
 
-      {/* Poll List */}
-      <PollList polls={polls} isLoading={isLoading} error={error} />
+      {/* Content */}
+      <div className="relative z-10 flex min-h-screen flex-col">
+        {/* Navbar */}
+        <nav className="flex items-center justify-between px-8 py-6">
+          <div className="flex items-center gap-2">
+            <div className="text-2xl font-bold text-white">QuickPoll</div>
+          </div>
+          <div className="flex items-center gap-6">
+            <Link href="/polls" className="text-white/80 hover:text-white transition-colors">
+              Polls
+            </Link>
+            <Link href="/create" className="text-white/80 hover:text-white transition-colors">
+              Create
+            </Link>
+          </div>
+        </nav>
+
+        {/* Hero Section */}
+        <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
+          {/* Headline with Shuffle Animation */}
+          {mounted && (
+            <Shuffle
+              text="Create polls instantly."
+              tag="h1"
+              className="text-6xl md:text-7xl lg:text-8xl font-bold text-white mb-6"
+              shuffleDirection="right"
+              duration={0.4}
+              stagger={0.04}
+              threshold={0.2}
+              triggerOnce={false}
+            />
+          )}
+
+          {/* Subheadline */}
+          <p className="text-xl md:text-2xl text-white/70 mb-12 max-w-2xl">
+            Get real-time votes and make decisions faster with your audience.
+          </p>
+
+          {/* Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Link href="/create">
+              <Button size="lg" className="bg-white text-black hover:bg-white/90 px-8 py-6 text-lg font-semibold">
+                Get Started
+              </Button>
+            </Link>
+            <Link href="/polls">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-white/30 text-white hover:bg-white/10 px-8 py-6 text-lg font-semibold"
+              >
+                View Polls
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
-    </ErrorBoundary>
   );
 }

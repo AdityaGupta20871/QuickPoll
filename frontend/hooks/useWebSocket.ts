@@ -7,7 +7,7 @@ export function useWebSocket() {
   const [isConnected, setIsConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
   const ws = useRef<WebSocket | null>(null);
-  const reconnectTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const reconnectTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const connect = useCallback(() => {
     try {
@@ -64,7 +64,10 @@ export function useWebSocket() {
   }, []);
 
   useEffect(() => {
-    connect();
+    // Only connect on client side
+    if (typeof window !== 'undefined') {
+      connect();
+    }
 
     return () => {
       disconnect();
