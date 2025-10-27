@@ -1,16 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Request, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from database import get_db
 from models import Poll, PollOption, Vote, Like
 from schemas import PollCreate, PollResponse, PollDetail, PollListResponse
 from websocket.connection_manager import manager
 
 router = APIRouter(prefix="/api/polls", tags=["polls"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/", response_model=PollDetail, status_code=201)
+@limiter.limit("5/minute")  # Limit poll creation to prevent spam
 async def create_poll(
+    request: Request,
     poll_data: PollCreate,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
@@ -63,7 +68,9 @@ async def create_poll(
 
 
 @router.get("/", response_model=PollListResponse)
+@limiter.limit("30/minute")  # More lenient for viewing polls
 def list_polls(
+    request: Request,
     page: int = 1,
     page_size: int = 10,
     db: Session = Depends(get_db)
@@ -107,7 +114,9 @@ def list_polls(
 
 
 @router.get("/{poll_id}", response_model=PollDetail)
+@limiter.limit("30/minute")  # More lenient for viewing individual polls
 def get_poll(
+    request: Request,
     poll_id: int,
     db: Session = Depends(get_db)
 ):

@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Request, BackgroundTasks, Cookie
 from sqlalchemy.orm import Session
 from typing import Optional
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from database import get_db
 from models import Poll, PollOption, Vote
 from schemas import VoteCreate, VoteResponse
@@ -8,10 +10,13 @@ from websocket.connection_manager import manager
 import uuid
 
 router = APIRouter(prefix="/api/polls", tags=["votes"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/{poll_id}/vote", response_model=VoteResponse, status_code=201)
+@limiter.limit("10/minute")  # Limit votes to prevent manipulation
 async def submit_vote(
+    request: Request,
     poll_id: int,
     vote_data: VoteCreate,
     background_tasks: BackgroundTasks,

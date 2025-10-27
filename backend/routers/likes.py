@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Request, BackgroundTasks, Cookie
 from sqlalchemy.orm import Session
 from typing import Optional
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from database import get_db
 from models import Poll, Like
 from schemas import LikeResponse, LikeDeleteResponse
@@ -8,10 +10,13 @@ from websocket.connection_manager import manager
 import uuid
 
 router = APIRouter(prefix="/api/polls", tags=["likes"])
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/{poll_id}/like", response_model=LikeResponse, status_code=201)
+@limiter.limit("20/minute")  # Limit likes to prevent spam
 async def like_poll(
+    request: Request,
     poll_id: int,
     background_tasks: BackgroundTasks,
     response: Response,

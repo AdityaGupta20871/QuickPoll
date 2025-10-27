@@ -98,57 +98,67 @@ export default function PollsPage() {
         <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8 animate-fade-in">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <div className="flex items-center gap-3">
-                <Link href="/">
-                  <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Home
-                  </Button>
-                </Link>
-                <h1 className="text-4xl font-bold text-white">All Polls</h1>
-            {mounted && (
-              <Badge variant={isConnected ? "default" : "secondary"} className="gap-1">
-                {isConnected ? (
-                  <>
-                    <Wifi className="h-3 w-3" />
-                    Live
-                  </>
-                ) : (
-                  <>
-                    <WifiOff className="h-3 w-3" />
-                    Offline
-                  </>
-                )}
-              </Badge>
-            )}
-            </div>
-            <p className="text-white/70 mt-2">
-              Browse and vote on polls in real-time
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={refresh}
-              disabled={isLoading}
-              className="border-white/30 text-white hover:bg-white/10"
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-            </Button>
-            <Link href="/create">
-              <Button className="bg-white text-black hover:bg-white/90">
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Create Poll
+          {/* Back Button */}
+          <div className="mb-4">
+            <Link href="/">
+              <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Home
               </Button>
             </Link>
+          </div>
+
+          {/* Title and Actions Row */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+            {/* Title and Badge */}
+            <div>
+              <div className="flex flex-wrap items-center gap-3 mb-2">
+                <h1 className="text-3xl md:text-4xl font-bold text-white">All Polls</h1>
+                {mounted && (
+                  <Badge variant={isConnected ? "default" : "secondary"} className="gap-1">
+                    {isConnected ? (
+                      <>
+                        <Wifi className="h-3 w-3" />
+                        Live
+                      </>
+                    ) : (
+                      <>
+                        <WifiOff className="h-3 w-3" />
+                        Offline
+                      </>
+                    )}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-white/70 text-sm md:text-base">
+                Browse and vote on polls in real-time
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={refresh}
+                disabled={isLoading}
+                className="border-white/30 text-white hover:bg-white/10"
+              >
+                <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+              </Button>
+              <Link href="/create">
+                <Button className="bg-white text-black hover:bg-white/90">
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Create Poll</span>
+                  <span className="sm:hidden">Create</span>
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
         
         {/* Search Bar */}
-        <div className="relative max-w-md">
+        <div className="relative max-w-md mb-8">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/50" />
           <Input
             type="text"
@@ -158,7 +168,6 @@ export default function PollsPage() {
             className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:bg-white/15"
           />
         </div>
-      </div>
 
         {/* Poll List */}
         <PollList polls={filteredPolls} isLoading={isLoading} error={error} />
